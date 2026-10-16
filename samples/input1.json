@@ -1,0 +1,98 @@
+[
+  {
+    "name": "nodes-inventory",
+    "vars": {
+      "base_url": "http://localhost:7071",
+      "username": "infraon",
+      "password": "infraon"
+    },
+    "defaults": {
+      "save": true,
+      "timeout_ms": 10000,
+      "verify_ssl": false,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expect": { "status": [200, 201, 207] },
+      "retry": {
+        "count": 1,
+        "delay_ms": 1000,
+        "backoff": "exponential",
+        "retry_on": [429, 500, 502, 503, 504],
+        "retry_on_errors": ["timeout", "connection_error"]
+      },
+      "pagination": {
+        "type": "offset",
+        "offset_param": "offset",
+        "limit_param": "limit",
+        "stop_when": ["short_page", "empty_or_not_list", "repeated_page"]
+      }
+    },
+    "steps": [
+      {
+        "id": "token_generate",
+        "request": {
+          "url": "{{vars.base_url}}/openApi/token/generate",
+          "method": "POST",
+          "headers": {},
+          "data": {
+            "source": "{{vars.username}}",
+            "key": "{{vars.password}}"
+          }
+        },
+        "pagination": { "type": "none" },
+        "save": false,
+        "response": {
+          "type": "object",
+          "from": "$",
+          "fields": { "token": ["token", "auth-token", "jwt"] }
+        }
+      },
+      {
+        "id": "fetch_nodes",
+        "depends_on": ["token_generate"],
+        "request": {
+          "url": "{{vars.base_url}}/openApi/resourceInventoryManagementV2/v4/resource",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{token_generate.token}}"
+          },
+          "params": {
+            "objectType": "Node",
+            "limit": 0,
+            "offset": 0
+          }
+        },
+        "response": {
+          "type": "list",
+          "from": "$",
+          "fields": { "ip": "ip", "id": "id" }
+        },
+        "on_status": {
+          "401": { "rerun": "token_generate", "max": 1 }
+        }
+      },
+      {
+        "id": "get_resources",
+        "depends_on": ["token_generate", "fetch_nodes"],
+        "foreach": "fetch_nodes",
+        "request": {
+          "url": "{{vars.base_url}}/openApi/resourceInventoryManagementV2/v4/resource",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{token_generate.token}}"
+          },
+          "params": {
+            "objectType": "resource",
+            "ipAddress": "{{fetch_nodes.ip}}",
+            "limit": 0,
+            "offset": 0
+          }
+        },
+        "on_status": {
+          "401": { "rerun": "token_generate", "max": 1 }
+        }
+      }
+    ]
+  }
+]

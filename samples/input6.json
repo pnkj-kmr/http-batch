@@ -1,0 +1,93 @@
+[
+  {
+    "name": "create-item-then-fetch",
+    "vars": {
+      "base_url": "https://api.example.com",
+      "token": "YOUR_ACCESS_TOKEN"
+    },
+    "steps": [
+      {
+        "id": "create_item",
+        "request": {
+          "url": "{{vars.base_url}}/data",
+          "method": "POST",
+          "headers": {
+            "Authorization": "Bearer {{vars.token}}",
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          "params": {
+            "query": "example",
+            "limit": 10
+          },
+          "data": {
+            "name": "New Item",
+            "description": "This is a new item."
+          }
+        },
+        "expect": {
+          "status": [200, 201]
+        },
+        "retry": {
+          "count": 2,
+          "delay_ms": 2000,
+          "backoff": "fixed"
+        },
+        "response": {
+          "item_id": "$.id",
+          "item_name": "$.name"
+        }
+      },
+      {
+        "id": "get_item",
+        "depends_on": ["create_item"],
+        "request": {
+          "url": "{{vars.base_url}}/data/{{create_item.item_id}}",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{vars.token}}",
+            "Accept": "application/json"
+          }
+        },
+        "expect": {
+          "status": [200]
+        },
+        "retry": {
+          "count": 3,
+          "delay_ms": 1000,
+          "backoff": "exponential",
+          "max_delay_ms": 10000
+        }
+      }
+    ]
+  },
+  {
+    "name": "search-data",
+    "steps": [
+      {
+        "id": "search",
+        "request": {
+          "url": "https://api.example.com/data",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+            "Accept": "application/json"
+          },
+          "params": {
+            "query": "example",
+            "limit": 10
+          }
+        },
+        "expect": {
+          "status": [200]
+        },
+        "retry": {
+          "count": 3,
+          "delay_ms": 1000,
+          "backoff": "exponential",
+          "max_delay_ms": 10000
+        }
+      }
+    ]
+  }
+]

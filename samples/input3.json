@@ -1,0 +1,428 @@
+[
+  {
+    "name": "topology",
+    "vars": {
+      "base_url": "http://localhost:7071",
+      "username": "infraon",
+      "password": "infraon",
+      "topology_protocols": [
+        "GPON",
+        "DWDM",
+        "SDH",
+        "PDH",
+        "LLDP",
+        "CDP",
+        "ISIS",
+        "OSPF",
+        "BGP"
+      ]
+    },
+    "defaults": {
+      "timeout_ms": 10000,
+      "verify_ssl": false,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expect": { "status": [200, 201, 207] },
+      "retry": {
+        "count": 1,
+        "delay_ms": 1000,
+        "backoff": "exponential",
+        "retry_on": [429, 500, 502, 503, 504],
+        "retry_on_errors": ["timeout", "connection_error"]
+      },
+      "pagination": {
+        "type": "offset",
+        "offset_param": "offset",
+        "limit_param": "limit",
+        "stop_when": ["short_page", "empty_or_not_list", "repeated_page"]
+      }
+    },
+    "steps": [
+      {
+        "id": "token_generate",
+        "request": {
+          "url": "{{vars.base_url}}/openApi/token/generate",
+          "method": "POST",
+          "headers": {},
+          "data": {
+            "source": "{{vars.username}}",
+            "key": "{{vars.password}}"
+          }
+        },
+        "pagination": { "type": "none" },
+        "save": false,
+        "response": {
+          "type": "object",
+          "from": "$",
+          "fields": { "token": ["token", "auth-token", "jwt"] }
+        }
+      },
+      {
+        "id": "get_topology",
+        "depends_on": ["token_generate"],
+        "foreach": "vars.topology_protocols",
+        "request": {
+          "url": "{{vars.base_url}}/openApi/resourceInventoryManagementV2/v4/resource",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{token_generate.token}}"
+          },
+          "params": {
+            "objectType": "topology",
+            "category": "{{vars.topology_protocols}}",
+            "limit": 250,
+            "offset": 0
+          }
+        },
+        "on_status": {
+          "401": { "rerun": "token_generate", "max": 1 }
+        }
+      }
+    ]
+  },
+  {
+    "name": "flow-domain",
+    "vars": {
+      "base_url": "http://localhost:7071",
+      "username": "infraon",
+      "password": "infraon"
+    },
+    "defaults": {
+      "timeout_ms": 10000,
+      "verify_ssl": false,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expect": { "status": [200, 201, 207] },
+      "retry": {
+        "count": 1,
+        "delay_ms": 1000,
+        "backoff": "exponential",
+        "retry_on": [429, 500, 502, 503, 504],
+        "retry_on_errors": ["timeout", "connection_error"]
+      },
+      "pagination": {
+        "type": "offset",
+        "offset_param": "offset",
+        "limit_param": "limit",
+        "stop_when": ["short_page", "empty_or_not_list", "repeated_page"]
+      }
+    },
+    "steps": [
+      {
+        "id": "token_generate",
+        "request": {
+          "url": "{{vars.base_url}}/openApi/token/generate",
+          "method": "POST",
+          "headers": {},
+          "data": {
+            "source": "{{vars.username}}",
+            "key": "{{vars.password}}"
+          }
+        },
+        "pagination": { "type": "none" },
+        "save": false,
+        "response": {
+          "type": "object",
+          "from": "$",
+          "fields": { "token": ["token", "auth-token", "jwt"] }
+        }
+      },
+      {
+        "id": "get_flow_domain",
+        "depends_on": ["token_generate"],
+        "request": {
+          "url": "{{vars.base_url}}/openApi/resourceInventoryManagementV2/v4/resource",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{token_generate.token}}"
+          },
+          "params": {
+            "objectType": "flow_domain",
+            "limit": 250,
+            "offset": 0
+          }
+        },
+        "on_status": {
+          "401": { "rerun": "token_generate", "max": 1 }
+        }
+      }
+    ]
+  },
+  {
+    "name": "protection-group",
+    "vars": {
+      "base_url": "http://localhost:7071",
+      "username": "infraon",
+      "password": "infraon"
+    },
+    "defaults": {
+      "timeout_ms": 10000,
+      "verify_ssl": false,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expect": { "status": [200, 201, 207] },
+      "retry": {
+        "count": 1,
+        "delay_ms": 1000,
+        "backoff": "exponential",
+        "retry_on": [429, 500, 502, 503, 504],
+        "retry_on_errors": ["timeout", "connection_error"]
+      },
+      "pagination": {
+        "type": "offset",
+        "offset_param": "offset",
+        "limit_param": "limit",
+        "stop_when": ["short_page", "empty_or_not_list", "repeated_page"]
+      }
+    },
+    "steps": [
+      {
+        "id": "token_generate",
+        "request": {
+          "url": "{{vars.base_url}}/openApi/token/generate",
+          "method": "POST",
+          "headers": {},
+          "data": {
+            "source": "{{vars.username}}",
+            "key": "{{vars.password}}"
+          }
+        },
+        "pagination": { "type": "none" },
+        "save": false,
+        "response": {
+          "type": "object",
+          "from": "$",
+          "fields": { "token": ["token", "auth-token", "jwt"] }
+        }
+      },
+      {
+        "id": "get_protection_group",
+        "depends_on": ["token_generate"],
+        "request": {
+          "url": "{{vars.base_url}}/openApi/resourceInventoryManagementV2/v4/resource",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{token_generate.token}}"
+          },
+          "params": {
+            "objectType": "protection_group",
+            "limit": 250,
+            "offset": 0
+          }
+        },
+        "on_status": {
+          "401": { "rerun": "token_generate", "max": 1 }
+        }
+      }
+    ]
+  },
+  {
+    "name": "cross-connect",
+    "vars": {
+      "base_url": "http://localhost:7071",
+      "username": "infraon",
+      "password": "infraon"
+    },
+    "defaults": {
+      "timeout_ms": 10000,
+      "verify_ssl": false,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expect": { "status": [200, 201, 207] },
+      "retry": {
+        "count": 1,
+        "delay_ms": 1000,
+        "backoff": "exponential",
+        "retry_on": [429, 500, 502, 503, 504],
+        "retry_on_errors": ["timeout", "connection_error"]
+      },
+      "pagination": {
+        "type": "offset",
+        "offset_param": "offset",
+        "limit_param": "limit",
+        "stop_when": ["short_page", "empty_or_not_list", "repeated_page"]
+      }
+    },
+    "steps": [
+      {
+        "id": "token_generate",
+        "request": {
+          "url": "{{vars.base_url}}/openApi/token/generate",
+          "method": "POST",
+          "headers": {},
+          "data": {
+            "source": "{{vars.username}}",
+            "key": "{{vars.password}}"
+          }
+        },
+        "pagination": { "type": "none" },
+        "save": false,
+        "response": {
+          "type": "object",
+          "from": "$",
+          "fields": { "token": ["token", "auth-token", "jwt"] }
+        }
+      },
+      {
+        "id": "get_cross_connect",
+        "depends_on": ["token_generate"],
+        "request": {
+          "url": "{{vars.base_url}}/openApi/resourceInventoryManagementV2/v4/resource",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{token_generate.token}}"
+          },
+          "params": {
+            "objectType": "cross_connect",
+            "limit": 250,
+            "offset": 0
+          }
+        },
+        "on_status": {
+          "401": { "rerun": "token_generate", "max": 1 }
+        }
+      }
+    ]
+  },
+  {
+    "name": "channel-mapping",
+    "vars": {
+      "base_url": "http://localhost:7071",
+      "username": "infraon",
+      "password": "infraon"
+    },
+    "defaults": {
+      "timeout_ms": 10000,
+      "verify_ssl": false,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expect": { "status": [200, 201, 207] },
+      "retry": {
+        "count": 1,
+        "delay_ms": 1000,
+        "backoff": "exponential",
+        "retry_on": [429, 500, 502, 503, 504],
+        "retry_on_errors": ["timeout", "connection_error"]
+      },
+      "pagination": {
+        "type": "offset",
+        "offset_param": "offset",
+        "limit_param": "limit",
+        "stop_when": ["short_page", "empty_or_not_list", "repeated_page"]
+      }
+    },
+    "steps": [
+      {
+        "id": "token_generate",
+        "request": {
+          "url": "{{vars.base_url}}/openApi/token/generate",
+          "method": "POST",
+          "headers": {},
+          "data": {
+            "source": "{{vars.username}}",
+            "key": "{{vars.password}}"
+          }
+        },
+        "pagination": { "type": "none" },
+        "save": false,
+        "response": {
+          "type": "object",
+          "from": "$",
+          "fields": { "token": ["token", "auth-token", "jwt"] }
+        }
+      },
+      {
+        "id": "get_channel_mapping",
+        "depends_on": ["token_generate"],
+        "request": {
+          "url": "{{vars.base_url}}/openApi/resourceInventoryManagementV2/v4/resource",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{token_generate.token}}"
+          },
+          "params": {
+            "objectType": "channel_mapping",
+            "limit": 250,
+            "offset": 0
+          }
+        },
+        "on_status": {
+          "401": { "rerun": "token_generate", "max": 1 }
+        }
+      }
+    ]
+  },
+  {
+    "name": "service-inventory",
+    "vars": {
+      "base_url": "http://localhost:7071",
+      "username": "infraon",
+      "password": "infraon"
+    },
+    "defaults": {
+      "timeout_ms": 10000,
+      "verify_ssl": false,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "expect": { "status": [200, 201, 207] },
+      "retry": {
+        "count": 1,
+        "delay_ms": 1000,
+        "backoff": "exponential",
+        "retry_on": [429, 500, 502, 503, 504],
+        "retry_on_errors": ["timeout", "connection_error"]
+      },
+      "pagination": {
+        "type": "offset",
+        "offset_param": "offset",
+        "limit_param": "limit",
+        "stop_when": ["short_page", "empty_or_not_list", "repeated_page"]
+      }
+    },
+    "steps": [
+      {
+        "id": "token_generate",
+        "request": {
+          "url": "{{vars.base_url}}/openApi/token/generate",
+          "method": "POST",
+          "headers": {},
+          "data": {
+            "source": "{{vars.username}}",
+            "key": "{{vars.password}}"
+          }
+        },
+        "pagination": { "type": "none" },
+        "save": false,
+        "response": {
+          "type": "object",
+          "from": "$",
+          "fields": { "token": ["token", "auth-token", "jwt"] }
+        }
+      },
+      {
+        "id": "get_service_inventory",
+        "depends_on": ["token_generate"],
+        "request": {
+          "url": "{{vars.base_url}}/openApi/serviceInventoryManagement/v5/service/",
+          "method": "GET",
+          "headers": {
+            "Authorization": "Bearer {{token_generate.token}}"
+          },
+          "params": {
+            "limit": 50,
+            "offset": 0
+          }
+        },
+        "on_status": {
+          "401": { "rerun": "token_generate", "max": 1 }
+        }
+      }
+    ]
+  }
+]
